@@ -1,13 +1,11 @@
 import keyboard
 import warnings
-from time import sleep
 warnings.filterwarnings("ignore")
 from PIL import Image
 import tkinter as tk
 from tkinter import filedialog
 from time import sleep
 import cv2
-import os
 from blessed import Terminal 
 from ascii_converter import get_ascii_art, display_image
 
@@ -50,7 +48,6 @@ def get_frames(num_frames):
 def display_video(frames, fps):
     term = Terminal()
     num_frames = len(frames)
-    #frames = [get_ascii_art(frame, term.height-term.height/25) for frame in frames]
     colors = []
     for i in range(len(frames)):
         frame = get_ascii_art(frames[i], term.height-term.height/25)

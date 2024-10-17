@@ -3,13 +3,14 @@ warnings.filterwarnings("ignore")
 from PIL import Image
 import tkinter as tk
 from tkinter import filedialog
+from blessed import Terminal 
 
 def select_image():
     root = tk.Tk()
     root.withdraw()
     file_path = filedialog.askopenfilename(
         title="Select an Image",
-        filetypes=[("Image files", "*.png *.jpg *.jpeg *.bmp *.gif")]
+        filetypes=[("Image files", "*.png *.jpg *.jpeg *.bmp ")]
     )
     root.destroy()
     return file_path
@@ -108,11 +109,16 @@ def write_to_outfile(ascii_art):
     file.close()
 
 def display_image(ascii_art, colors):
+    term = Terminal()
+    whitespace = int((term.width - len(ascii_art[0])*2)/2)
+    print(whitespace)
+    print(" " * whitespace, end = "")
     for i in range(len(ascii_art)):
         for j in range(len(ascii_art[i])):
             print(colors[i][j], end = "")
             print(ascii_art[i][j] + " ", end = "")
-        print()
+        print("\n" + " " * whitespace, end = "")
+        
 
 def get_ascii_art(im, size):
     pixels = convert_to_pixels(im, size)
