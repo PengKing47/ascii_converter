@@ -1,6 +1,5 @@
 import warnings
 warnings.filterwarnings("ignore")
-from rembg import remove
 from PIL import Image
 import tkinter as tk
 from tkinter import filedialog
@@ -29,12 +28,12 @@ def trim_image(im_data):
         i += 1
 
 def standardize_size(im, size):
-    scale = im.size[1] // size
-    return im.size[0] // scale, im.size[1] // scale
+    scale = im.size[1] / size
+    return int(im.size[0] / scale), int(im.size[1] / scale)
         
 
 def convert_to_pixels(im, size):
-    im = remove(im).convert("L")
+    im = im.convert("L")
     im = im.resize(standardize_size(im, size))
     pixels = []
     image_data = im.getdata()
@@ -86,6 +85,16 @@ def write_to_outfile(ascii_art):
         file.write("\n")
     file.close()
 
+def display_image(ascii_art):
+    for i in range(len(ascii_art)):
+        for j in range(len(ascii_art[i])):
+            print(ascii_art[i][j] + " ", end = "")
+        print()
+
+def get_ascii_art(im, size):
+    pixels = convert_to_pixels(im, size)
+    #trim_image(pixels)
+    return convert_image_data_to_ascii(pixels)
 
 if __name__ == "__main__":
     image_path = select_image()
@@ -95,7 +104,5 @@ if __name__ == "__main__":
         print("No image selected.")
     im = Image.open(image_path)
     size = int(input("Enter an integer for the size of the art: "))
-    pixels = convert_to_pixels(im, size)
-    trim_image(pixels)
-    ascii_art = convert_image_data_to_ascii(pixels)
-    write_to_outfile(ascii_art)
+    ascii_art = get_ascii_art(im, size)
+    display_image(ascii_art)
