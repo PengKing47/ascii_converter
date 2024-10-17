@@ -50,23 +50,24 @@ def get_frames(num_frames):
 def display_video(frames, fps):
     term = Terminal()
     num_frames = len(frames)
-    frames = [get_ascii_art(frame, term.height-term.height/25) for frame in frames]
+    #frames = [get_ascii_art(frame, term.height-term.height/25) for frame in frames]
+    colors = []
+    for i in range(len(frames)):
+        frame = get_ascii_art(frames[i], term.height-term.height/25)
+        frames[i] = frame[0]
+        colors.append(frame[1])
     interval = 1 / fps
     current_frame = 0
 
     with term.fullscreen():
         space_pressed = False
         while True:
-            if keyboard.is_pressed('q'):
-                break
-            elif keyboard.is_pressed('space'): 
+            if keyboard.is_pressed('space'): 
                 space_pressed = True
             while space_pressed:
                 sleep(0.1)
                 if keyboard.is_pressed('space'):
                     space_pressed = False
-                if keyboard.is_pressed('q'):
-                    break
                 sleep(0.1)
                 
             print(term.move_xy(0, 0))
@@ -74,7 +75,7 @@ def display_video(frames, fps):
                 current_frame = 0
             else:
                 current_frame += 1
-            display_image(frames[current_frame])
+            display_image(frames[current_frame], colors[current_frame])
             sleep(interval)
     
 if __name__ == "__main__":

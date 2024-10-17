@@ -30,6 +30,28 @@ def trim_image(im_data):
 def standardize_size(im, size):
     scale = im.size[1] / size
     return int(im.size[0] / scale), int(im.size[1] / scale)
+
+def convert_rgb_to_ansi(rgb):
+    r = rgb[0]
+    g = rgb[1]
+    b = rgb[2]
+    return f"\033[38;2;{r};{g};{b}m"
+
+def convert_to_colors(im, size):
+    im = im.resize(standardize_size(im, size))
+    colors = []
+    rgb_data = im.getdata()
+    i = 0
+    j = 0
+    row = []
+    while i < im.size[1]:
+        row.append(convert_rgb_to_ansi(rgb_data[j]))
+        j += 1
+        if j % im.size[0] == 0:
+            i += 1
+            colors.append(row)
+            row = []
+    return colors
         
 
 def convert_to_pixels(im, size):
@@ -85,16 +107,17 @@ def write_to_outfile(ascii_art):
         file.write("\n")
     file.close()
 
-def display_image(ascii_art):
+def display_image(ascii_art, colors):
     for i in range(len(ascii_art)):
         for j in range(len(ascii_art[i])):
+            print(colors[i][j], end = "")
             print(ascii_art[i][j] + " ", end = "")
         print()
 
 def get_ascii_art(im, size):
     pixels = convert_to_pixels(im, size)
-    #trim_image(pixels)
-    return convert_image_data_to_ascii(pixels)
+    colors = convert_to_colors(im, size)
+    return convert_image_data_to_ascii(pixels), colors
 
 if __name__ == "__main__":
     image_path = select_image()
@@ -104,5 +127,5 @@ if __name__ == "__main__":
         print("No image selected.")
     im = Image.open(image_path)
     size = int(input("Enter an integer for the size of the art: "))
-    ascii_art = get_ascii_art(im, size)
-    display_image(ascii_art)
+    ascii_art, colors = get_ascii_art(im, size)
+    display_image(ascii_art, colors)
