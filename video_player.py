@@ -1,5 +1,6 @@
 import keyboard
 import warnings
+from time import sleep
 warnings.filterwarnings("ignore")
 from PIL import Image
 import tkinter as tk
@@ -46,17 +47,28 @@ def get_frames(num_frames):
         frames.append(Image.open(path))
     return frames
 
-def display_video(frames, size, fps):
+def display_video(frames, fps):
     term = Terminal()
     num_frames = len(frames)
-    frames = [get_ascii_art(frame, size) for frame in frames]
+    frames = [get_ascii_art(frame, term.height-term.height/25) for frame in frames]
     interval = 1 / fps
     current_frame = 0
 
     with term.fullscreen():
+        space_pressed = False
         while True:
             if keyboard.is_pressed('q'):
                 break
+            elif keyboard.is_pressed('space'): 
+                space_pressed = True
+            while space_pressed:
+                sleep(0.1)
+                if keyboard.is_pressed('space'):
+                    space_pressed = False
+                if keyboard.is_pressed('q'):
+                    break
+                sleep(0.1)
+                
             print(term.move_xy(0, 0))
             if current_frame + 1 == num_frames:
                 current_frame = 0
@@ -71,9 +83,8 @@ if __name__ == "__main__":
         print(f"Selected image: {video}")
     else:
         print("No image selected.")
-    size = int(input("Enter an integer for the size of the video: "))
     fps = int(input("Enter an integer for the fps of the video: "))
     print("Loading...")
     num_frames = save_frames(video)
     frames = get_frames(num_frames)
-    display_video(frames, size, fps)
+    display_video(frames, fps)
