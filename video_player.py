@@ -7,7 +7,13 @@ from tkinter import filedialog
 from time import sleep
 import cv2
 from blessed import Terminal 
+from threading import Thread
 from ascii_converter import get_ascii_art, display_image
+
+#global variables
+images = []
+frames = []
+colors = []
 
 def select_video():
     root = tk.Tk()
@@ -25,6 +31,7 @@ def save_frames_from_gif(video):
             im.seek(i)
             im.save("images/{}.png".format(i))
 
+# thread 1
 def save_frames(video):
     cam = cv2.VideoCapture(video) 
     currentframe = 0
@@ -38,27 +45,44 @@ def save_frames(video):
             break
     return currentframe
 
+#thread 2
 def get_frames(num_frames):
-    frames = []
     for i in range(num_frames):
         path = "images/{}.jpg".format(i)
-        frames.append(Image.open(path))
-    return frames
+        images.append(Image.open(path))
 
-def display_video(frames, fps):
+# thread 3
+def update_frames():
     term = Terminal()
-    num_frames = len(frames)
-    colors = []
-    for i in range(len(frames)):
-        frame = get_ascii_art(frames[i], term.height-term.height/25)
-        frames[i] = frame[0]
+    for i in range(len(images)):
+        frame = get_ascii_art(images[i], term.height-term.height/25)
+        frames.append(frame[0])
         colors.append(frame[1])
+    '''
+    while True:
+        #adjust the frames so the video size is adjustable is adjustable
+        #this causes a lot of lag 🤣
+        term = Terminal()
+        for i in range(len(images)):
+            if keyboard.is_pressed("q"):
+                exit(1)
+            frame = get_ascii_art(images[i], term.height-term.height/25)
+            frames[i] = frame[0]
+            colors[i] = frame[1]
+    '''
+
+#thread 4
+def display_video(fps):
+    term = Terminal()
+    num_frames = len(images)
     interval = 1 / fps
     current_frame = 0
 
     with term.fullscreen():
         space_pressed = False
         while True:
+            if keyboard.is_pressed("q"):
+                exit(1)
             if keyboard.is_pressed('space'): 
                 space_pressed = True
             while space_pressed:
@@ -66,6 +90,8 @@ def display_video(frames, fps):
                 if keyboard.is_pressed('space'):
                     space_pressed = False
                 sleep(0.1)
+                if keyboard.is_pressed("q"):
+                    exit(1)
                 
             print(term.move_xy(0, 0))
             if current_frame + 1 == num_frames:
@@ -74,15 +100,35 @@ def display_video(frames, fps):
                 current_frame += 1
             display_image(frames[current_frame], colors[current_frame])
             sleep(interval)
-    
+
+def run_threads(video, fps,):
+    cam = cv2.VideoCapture(video) 
+    num_frames = int(cam.get(cv2.CAP_PROP_FRAME_COUNT))
+
+    save_frames_thread = Thread(target=save_frames, args = (video,))
+    get_frames_thread = Thread(target=get_frames, args = (num_frames,))
+    update_thread = Thread(target=update_frames)
+    display_thread = Thread(target=display_video, args = (fps,))
+
+    save_frames_thread.start()
+    sleep(0.5)
+    get_frames_thread.start()
+
+    save_frames_thread.join()
+    get_frames_thread.join()
+
+    update_thread.start()
+    update_thread.join() # if i dont wait for this to end, the begginning of the video is laggy af but the video take much longer to laod so idk
+    sleep(0.01)
+    display_thread.start()
+
 if __name__ == "__main__":
     video = select_video()
     if video:
         print(f"Selected image: {video}")
     else:
         print("No image selected.")
-    fps = int(input("Enter an integer for the fps of the video: "))
+    #fps = int(input("Enter an integer for the fps of the video: "))
+    fps = 30 # this will be the standard for now
     print("Loading...")
-    num_frames = save_frames(video)
-    frames = get_frames(num_frames)
-    display_video(frames, fps)
+    run_threads(video, fps)
