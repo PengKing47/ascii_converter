@@ -55,7 +55,7 @@ def get_frames(num_frames):
 def update_frames():
     term = Terminal()
     for i in range(len(images)):
-        frame = get_ascii_art(images[i], term.height-term.height/25)
+        frame = get_ascii_art(images[i], term.height-term.height/24.5)
         frames.append(frame[0])
         colors.append(frame[1])
     '''
@@ -83,7 +83,7 @@ def display_video(fps):
         while True:
             if keyboard.is_pressed("q"):
                 exit(1)
-            if keyboard.is_pressed('space'): 
+            elif keyboard.is_pressed('space'): 
                 space_pressed = True
             while space_pressed:
                 sleep(0.1)
@@ -129,6 +129,6 @@ if __name__ == "__main__":
     else:
         print("No image selected.")
     #fps = int(input("Enter an integer for the fps of the video: "))
-    fps = 30 # this will be the standard for now
+    fps = 60 # this will be the standard for now
     print("Loading...")
     run_threads(video, fps)

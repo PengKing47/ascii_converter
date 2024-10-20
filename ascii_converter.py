@@ -111,7 +111,6 @@ def write_to_outfile(ascii_art):
 def display_image(ascii_art, colors):
     term = Terminal()
     whitespace = int((term.width - len(ascii_art[0])*2)/2)
-    print(whitespace)
     print(" " * whitespace, end = "")
     for i in range(len(ascii_art)):
         for j in range(len(ascii_art[i])):
