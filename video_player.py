@@ -47,34 +47,18 @@ def save_frames(video):
 
 #thread 2
 def get_frames(num_frames):
+    term = Terminal()
     for i in range(num_frames):
         path = "images/{}.jpg".format(i)
-        images.append(Image.open(path))
-
-# thread 3
-def update_frames():
-    term = Terminal()
-    for i in range(len(images)):
-        frame = get_ascii_art(images[i], term.height-term.height/24.5)
+        image = Image.open(path)
+        images.append(image)
+        frame = get_ascii_art(image, term.height-term.height/24.5)
         frames.append(frame[0])
         colors.append(frame[1])
-    '''
-    while True:
-        #adjust the frames so the video size is adjustable is adjustable
-        #this causes a lot of lag 🤣
-        term = Terminal()
-        for i in range(len(images)):
-            if keyboard.is_pressed("q"):
-                exit(1)
-            frame = get_ascii_art(images[i], term.height-term.height/25)
-            frames[i] = frame[0]
-            colors[i] = frame[1]
-    '''
 
-#thread 4
+#thread 3
 def display_video(fps):
     term = Terminal()
-    num_frames = len(images)
     interval = 1 / fps
     current_frame = 0
 
@@ -94,10 +78,9 @@ def display_video(fps):
                     exit(1)
                 
             print(term.move_xy(0, 0))
-            if current_frame + 1 == num_frames:
+            current_frame += 1
+            if current_frame == len(frames):
                 current_frame = 0
-            else:
-                current_frame += 1
             display_image(frames[current_frame], colors[current_frame])
             sleep(interval)
 
@@ -107,22 +90,14 @@ def run_threads(video, fps,):
 
     save_frames_thread = Thread(target=save_frames, args = (video,))
     get_frames_thread = Thread(target=get_frames, args = (num_frames,))
-    update_thread = Thread(target=update_frames)
     display_thread = Thread(target=display_video, args = (fps,))
 
     save_frames_thread.start()
     sleep(0.5)
     get_frames_thread.start()
-
-    save_frames_thread.join()
-    get_frames_thread.join()
-
-    update_thread.start()
-    update_thread.join() # if i dont wait for this to end, the begginning of the video is laggy af but the video take much longer to laod so idk
-    sleep(0.01)
     display_thread.start()
 
-if __name__ == "__main__":
+def main():
     video = select_video()
     if video:
         print(f"Selected image: {video}")
@@ -132,3 +107,6 @@ if __name__ == "__main__":
     fps = 60 # this will be the standard for now
     print("Loading...")
     run_threads(video, fps)
+
+if __name__ == "__main__":
+    main()

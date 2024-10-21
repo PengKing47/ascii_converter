@@ -15,19 +15,6 @@ def select_image():
     root.destroy()
     return file_path
 
-def trim_image(im_data):
-    i = 0
-    while i < len(im_data):
-        all_zeroes = True
-        for j in range(len(im_data[i])):
-            if im_data[i][j] != 0:
-                all_zeroes = False
-                break
-        if all_zeroes:
-            im_data.pop(i)
-            i -= 1
-        i += 1
-
 def standardize_size(im, size):
     scale = im.size[1] / size
     return int(im.size[0] / scale), int(im.size[1] / scale)
@@ -54,23 +41,23 @@ def convert_to_colors(im, size):
             row = []
     return colors
         
-
-def convert_to_pixels(im, size):
+def convert_to_ascii(im, size):
     im = im.convert("L")
     im = im.resize(standardize_size(im, size))
-    pixels = []
+    ascii_art = []
     image_data = im.getdata()
     i = 0
     j = 0
     row = []
     while i < im.size[1]:
-        row.append(image_data[j])
+        row.append(convert_pixel_to_ascii(image_data[j]))
         j += 1
         if j % im.size[0] == 0:
             i += 1
-            pixels.append(row)
+            ascii_art.append(row)
+
             row = []
-    return pixels
+    return ascii_art
 
 def convert_pixel_to_ascii(pixel):
     if pixel == 0:
@@ -88,16 +75,6 @@ def convert_pixel_to_ascii(pixel):
     elif pixel > 180 and pixel < 216:
         return "#"
     return "@"
-    
-def convert_image_data_to_ascii(im_data):
-    ascii_art = []
-    for i in range(len(im_data)):
-        row = []
-        for j in range(len(im_data[i])):
-            ascii_character = convert_pixel_to_ascii(im_data[i][j])
-            row.append(ascii_character)
-        ascii_art.append(row)
-    return ascii_art
 
 def write_to_outfile(ascii_art):
     file = open("outfile.txt", "w")
@@ -118,13 +95,12 @@ def display_image(ascii_art, colors):
             print(ascii_art[i][j] + " ", end = "")
         print("\n" + " " * whitespace, end = "")
         
-
 def get_ascii_art(im, size):
-    pixels = convert_to_pixels(im, size)
+    ascii_art = convert_to_ascii(im, size)
     colors = convert_to_colors(im, size)
-    return convert_image_data_to_ascii(pixels), colors
+    return ascii_art, colors
 
-if __name__ == "__main__":
+def main():
     image_path = select_image()
     if image_path:
         print(f"Selected image: {image_path}")
@@ -134,3 +110,6 @@ if __name__ == "__main__":
     size = int(input("Enter an integer for the size of the art: "))
     ascii_art, colors = get_ascii_art(im, size)
     display_image(ascii_art, colors)
+
+if __name__ == "__main__":
+    main()
