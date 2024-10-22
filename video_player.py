@@ -6,12 +6,11 @@ import tkinter as tk
 from tkinter import filedialog
 from time import sleep
 import cv2
-from blessed import Terminal 
+from blessed import Terminal
 from threading import Thread
 from ascii_converter import get_ascii_art, display_image
 
 #global variables
-images = []
 frames = []
 colors = []
 
@@ -24,12 +23,6 @@ def select_video():
     )
     root.destroy()
     return file_path
-
-def save_frames_from_gif(video):
-    with video as im:
-        for i in range(im.n_frames):
-            im.seek(i)
-            im.save("images/{}.png".format(i))
 
 # thread 1
 def save_frames(video):
@@ -51,7 +44,6 @@ def get_frames(num_frames):
     for i in range(num_frames):
         path = "images/{}.jpg".format(i)
         image = Image.open(path)
-        images.append(image)
         frame = get_ascii_art(image, term.height-term.height/24.5)
         frames.append(frame[0])
         colors.append(frame[1])
@@ -103,8 +95,8 @@ def main():
         print(f"Selected image: {video}")
     else:
         print("No image selected.")
-    #fps = int(input("Enter an integer for the fps of the video: "))
-    fps = 60 # this will be the standard for now
+    #fps = int(input("Enter an integer for the fps of the video: "))qq
+    fps = 30 # this will be the standard for now
     print("Loading...")
     run_threads(video, fps)
 
