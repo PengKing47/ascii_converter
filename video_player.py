@@ -4,7 +4,7 @@ warnings.filterwarnings("ignore")
 from PIL import Image
 import tkinter as tk
 from tkinter import filedialog
-from time import sleep
+from time import sleep, time
 import cv2
 from blessed import Terminal
 from threading import Thread
@@ -41,6 +41,7 @@ class VideoPlayer():
 
     #thread 2
     def display_video(self):
+        initial_time = time()
         term = Terminal()
         interval = 1 / self.fps
 
@@ -64,7 +65,11 @@ class VideoPlayer():
                 if self.current_frame == len(self.frames):
                     self.current_frame = 0
                 self.display_frame()
-                sleep(interval)
+                current_time = time()
+                time_difference = current_time - initial_time
+                if time_difference < interval:
+                    sleep(interval - time_difference)
+                initial_time = time()
 
     def start(self):
         cam = cv2.VideoCapture(self.video) 
@@ -93,7 +98,7 @@ def main():
         print(f"Selected image: {video}")
     else:
         print("No image selected.")
-    videoPlayer = VideoPlayer(video, 20)
+    videoPlayer = VideoPlayer(video, 60)
     videoPlayer.start()
 
 if __name__ == "__main__":
