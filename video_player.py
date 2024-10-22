@@ -16,6 +16,7 @@ class VideoPlayer():
         self.colors = []
         self.num_frames = 0
         self.current_frame = 0
+        self.is_playing = True
         self.video = video
         self.fps = fps
 
@@ -23,41 +24,31 @@ class VideoPlayer():
     def display_frame(self):
         display_image(self.frames[self.current_frame], self.colors[self.current_frame])
 
-    # thread 1
-    def save_frames(self):
-        print("Loading...")
-        cam = cv2.VideoCapture(self.video) 
-        currentframe = 0
-        while(True): 
-            ret,frame = cam.read() 
-            if ret: 
-                path = 'images/' + str(currentframe) + '.jpg'
-                cv2.imwrite(path, frame) 
-                currentframe += 1
-            else: 
-                break
-        return currentframe
-
-    #thread 2
+    #thread 1
     def get_frames(self):
         term = Terminal()
+        cam = cv2.VideoCapture(self.video)
+        current_frame = 0
         for i in range(self.num_frames):
-            path = "images/{}.jpg".format(i)
-            image = Image.open(path)
-            frame = get_ascii_art(image, term.height-term.height/24.5)
-            self.frames.append(frame[0])
-            self.colors.append(frame[1])
+            frame_ready, current_frame = cam.read() # get the frame
+            if frame_ready:
+                frame = cv2.imread(self.video, current_frame)
+                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB) 
+                frame = Image.fromarray(frame) 
+                frame = get_ascii_art(frame, term.height-term.height/24.5)
+                self.frames.append(frame[0])
+                self.colors.append(frame[1])
 
-    #thread 3
+    #thread 2
     def display_video(self):
         term = Terminal()
         interval = 1 / self.fps
 
         with term.fullscreen():
             space_pressed = False
-            while True:
+            while self.is_playing:
                 if keyboard.is_pressed("q"):
-                    exit(1)
+                    self.is_playing = False
                 elif keyboard.is_pressed('space'): 
                     space_pressed = True
                 while space_pressed:
@@ -66,7 +57,7 @@ class VideoPlayer():
                         space_pressed = False
                     sleep(0.1)
                     if keyboard.is_pressed("q"):
-                        exit(1)
+                        self.is_playing = False
                     
                 print(term.move_xy(0, 0))
                 self.current_frame += 1
@@ -79,11 +70,9 @@ class VideoPlayer():
         cam = cv2.VideoCapture(self.video) 
         self.num_frames = int(cam.get(cv2.CAP_PROP_FRAME_COUNT))
         
-        save_frames_thread = Thread(target=self.save_frames)
         get_frames_thread = Thread(target=self.get_frames)
         display_thread = Thread(target=self.display_video)
 
-        save_frames_thread.start()
         sleep(0.5)
         get_frames_thread.start()
         display_thread.start()
