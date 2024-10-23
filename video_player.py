@@ -19,6 +19,7 @@ class VideoPlayer():
         self.is_playing = True
         self.video = video
         self.fps = fps
+        self.actual_fps = ""
 
     # method to be overwritten with whatever is needed
     def display_frame(self):
@@ -35,7 +36,7 @@ class VideoPlayer():
                 frame = cv2.imread(self.video, current_frame)
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB) 
                 frame = Image.fromarray(frame) 
-                frame = get_ascii_art(frame, term.height-term.height/24.5)
+                frame = get_ascii_art(frame, term.height-10)
                 self.frames.append(frame[0])
                 self.colors.append(frame[1])
 
@@ -48,7 +49,7 @@ class VideoPlayer():
         with term.fullscreen():
             space_pressed = False
             while self.is_playing:
-                if keyboard.is_pressed("q"):
+                if keyboard.is_pressed("q") or keyboard.is_pressed("x"):
                     self.is_playing = False
                 elif keyboard.is_pressed('space'): 
                     space_pressed = True
@@ -57,7 +58,8 @@ class VideoPlayer():
                     if keyboard.is_pressed('space'):
                         space_pressed = False
                     sleep(0.1)
-                    if keyboard.is_pressed("q"):
+                    if keyboard.is_pressed("q") or keyboard.is_pressed("x"):
+                        space_pressed = False
                         self.is_playing = False
                     
                 print(term.move_xy(0, 0))
@@ -69,6 +71,9 @@ class VideoPlayer():
                 time_difference = current_time - initial_time
                 if time_difference < interval:
                     sleep(interval - time_difference)
+                    self.actual_fps = self.fps
+                else:
+                    self.actual_fps = int(1/time_difference)
                 initial_time = time()
 
     def start(self):
@@ -78,8 +83,8 @@ class VideoPlayer():
         get_frames_thread = Thread(target=self.get_frames)
         display_thread = Thread(target=self.display_video)
 
-        sleep(0.5)
         get_frames_thread.start()
+        sleep(0.5)
         display_thread.start()
 
 def select_video():
